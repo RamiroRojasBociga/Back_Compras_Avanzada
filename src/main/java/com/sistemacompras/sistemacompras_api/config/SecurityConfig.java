@@ -7,10 +7,15 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -55,7 +60,25 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        // Definimos qué encoder usar para NUEVAS contraseñas
+        String encodingId = "bcrypt";
+
+        // Creamos un mapa con todos los encoders que queremos soportar
+        Map<String, PasswordEncoder> encoders = new HashMap<>();
+        encoders.put(encodingId, new BCryptPasswordEncoder());  // Para contraseñas nuevas
+        encoders.put("noop", NoOpPasswordEncoder.getInstance()); // Para contraseñas existentes
+
+        // Creamos el DelegatingPasswordEncoder
+        DelegatingPasswordEncoder delegatingEncoder =
+                new DelegatingPasswordEncoder(encodingId, encoders);
+
+        // IMPORTANTE: Esto permite validar contraseñas SIN prefijo como texto plano
+        // Es necesario para que funcione con las contraseñas que ya tienen {noop} en la BD
+        delegatingEncoder.setDefaultPasswordEncoderForMatches(
+                NoOpPasswordEncoder.getInstance()
+        );
+
+        return delegatingEncoder;
     }
 
 

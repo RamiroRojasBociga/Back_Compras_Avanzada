@@ -7,6 +7,7 @@ import com.sistemacompras.sistemacompras_api.entity.Usuario;
 import com.sistemacompras.sistemacompras_api.service.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -19,34 +20,33 @@ public class AuthController {
 
     private final UsuarioService usuarioService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder; // NUEVO
 
-    // Inyectamos el servicio de usuario y el generador de tokens
-    public AuthController(UsuarioService usuarioService, JwtTokenProvider jwtTokenProvider) {
+    // Constructor actualizado
+    public AuthController(UsuarioService usuarioService,
+                          JwtTokenProvider jwtTokenProvider,
+                          PasswordEncoder passwordEncoder) {
         this.usuarioService = usuarioService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.passwordEncoder = passwordEncoder; // NUEVO
     }
-
-
-     //Recibe email y password → valida → devuelve un JWT
 
     @PostMapping("/login")
     public ResponseEntity<MensajeResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
-        // 1️⃣ Buscamos el usuario por su email
+        // Buscamos el usuario por su email
         Usuario usuario = usuarioService.findEntityByEmail(loginRequest.getEmail());
 
-        // Verificamos que exista y que la contraseña sea correcta
-        if (usuario != null && usuario.getPassword().equals(loginRequest.getPassword())) {
+        // MODIFICADO: Usamos passwordEncoder.matches() en lugar de equals()
+        if (usuario != null && passwordEncoder.matches(loginRequest.getPassword(), usuario.getPassword())) {
 
             // Generamos un token JWT para este usuario
             String token = jwtTokenProvider.generarToken(usuario.getEmail());
 
-            // Construimos una respuesta con mensaje + token
             MensajeResponseDto response = new MensajeResponseDto(
                     "Login correcto",
                     token
             );
 
-            // Devolvemos el token al cliente (Postman o Swagger)
             return ResponseEntity.ok(response);
         }
 
@@ -55,3 +55,4 @@ public class AuthController {
                 .body(new MensajeResponseDto("Credenciales inválidas", null));
     }
 }
+
