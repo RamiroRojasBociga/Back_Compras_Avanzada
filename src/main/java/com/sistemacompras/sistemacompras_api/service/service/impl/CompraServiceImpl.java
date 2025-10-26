@@ -10,6 +10,8 @@ import com.sistemacompras.sistemacompras_api.service.CompraService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -26,29 +28,49 @@ public class CompraServiceImpl implements CompraService {
 
     @Transactional(readOnly = true)
     public List<CompraResponseDto> findAll() {
-        return mapper.toResponseList(repo.findAll());
+        // Usar el método con JOIN FETCH
+        List<Compra> compras = repo.findAllWithRelations();
+        return mapper.toResponseList(compras);
     }
 
     @Transactional(readOnly = true)
     public CompraResponseDto findById(Long id) {
-        Compra e = repo.findById(id)
+        // Usar el método con JOIN FETCH
+        Compra e = repo.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Compra " + id + " no encontrada"));
         return mapper.toResponse(e);
     }
 
     public CompraResponseDto create(CompraRequestDto dto) {
-        // No se puede validar unicidad por nombre ya que no existe ese campo
-        Compra saved = repo.save(mapper.toEntity(dto));
-        return mapper.toResponse(saved);
+        Compra entity = mapper.toEntity(dto);
+
+        // Generar número de factura automático si no se proporcionó
+        if (dto.getNumFactura() == null || dto.getNumFactura().trim().isEmpty()) {
+            String numeroFactura = generarNumeroFactura();
+            entity.setNumFactura(numeroFactura);
+        }
+
+        Compra saved = repo.save(entity);
+
+        // Para la respuesta, obtener la entidad con relaciones cargadas
+        Compra savedWithRelations = repo.findByIdWithRelations(saved.getIdCompra())
+                .orElseThrow(() -> new ResourceNotFoundException("Compra no encontrada después de crear"));
+
+        return mapper.toResponse(savedWithRelations);
     }
 
     public CompraResponseDto update(Long id, CompraRequestDto dto) {
-        Compra e = repo.findById(id)
+        Compra e = repo.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Compra " + id + " no encontrada"));
 
-        // No hay validación de nombre porque Compra no lo tiene
         mapper.updateEntityFromRequest(dto, e);
-        return mapper.toResponse(repo.save(e));
+        Compra updated = repo.save(e);
+
+        // Obtener con relaciones para la respuesta
+        Compra updatedWithRelations = repo.findByIdWithRelations(updated.getIdCompra())
+                .orElseThrow(() -> new ResourceNotFoundException("Compra no encontrada después de actualizar"));
+
+        return mapper.toResponse(updatedWithRelations);
     }
 
     public void delete(Long id) {
@@ -56,5 +78,15 @@ public class CompraServiceImpl implements CompraService {
             throw new ResourceNotFoundException("Compra " + id + " no encontrada");
         }
         repo.deleteById(id);
+    }
+
+    // Método para generar número de factura automático
+    private String generarNumeroFactura() {
+        // Contar compras existentes para generar número consecutivo
+        long totalCompras = repo.count();
+        String año = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy"));
+
+        // Formato: FACT-2025-0001, FACT-2025-0002, etc.
+        return "FACT-" + año + "-" + String.format("%04d", totalCompras + 1);
     }
 }

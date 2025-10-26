@@ -7,32 +7,42 @@ import java.time.LocalDate;
 @Table(name = "compras")
 public class Compra {
 
-    // Clave primaria autoincremental
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_compra")
     private Long idCompra;
 
-    // Relación muchos-a-uno con usuario (quien registra la compra)
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
-    // Relación muchos-a-uno con proveedor (a quién se realiza la compra)
     @ManyToOne
     @JoinColumn(name = "id_proveedor", nullable = false)
     private Proveedor proveedor;
 
-    // Fecha de la compra
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
-    // Estado de la compra (ej: registrada, pagada, anulada)
+    // AGREGAR ESTE CAMPO - Número de factura (obligatorio)
+    @Column(name = "num_factura", nullable = false)
+    private String numFactura;
+
     @Column(name = "estado", nullable = false)
     private String estado;
 
-    // Getters y setters
+    // Constructores
+    public Compra() {}
 
+    public Compra(Long idCompra, Usuario usuario, Proveedor proveedor, LocalDate fecha, String numFactura, String estado) {
+        this.idCompra = idCompra;
+        this.usuario = usuario;
+        this.proveedor = proveedor;
+        this.fecha = fecha;
+        this.numFactura = numFactura;
+        this.estado = estado;
+    }
+
+    // Getters y setters
     public Long getIdCompra() {
         return idCompra;
     }
@@ -63,6 +73,15 @@ public class Compra {
 
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
+    }
+
+    // AGREGAR GETTER Y SETTER para numFactura
+    public String getNumFactura() {
+        return numFactura;
+    }
+
+    public void setNumFactura(String numFactura) {
+        this.numFactura = numFactura;
     }
 
     public String getEstado() {
