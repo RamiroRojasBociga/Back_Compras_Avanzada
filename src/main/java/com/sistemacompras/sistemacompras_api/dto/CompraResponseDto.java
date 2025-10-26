@@ -10,63 +10,47 @@ public class CompraResponseDto {
     private Long idProveedor;
     private String nombreProveedor;
     private LocalDate fecha;
+    private String numFactura;  // NUEVO CAMPO
     private String estado;
 
-    // Getters y setters
+    // Constructores
+    public CompraResponseDto() {}
 
-    public Long getIdCompra() {
-        return idCompra;
-    }
-
-    public void setIdCompra(Long idCompra) {
+    public CompraResponseDto(Long idCompra, Long idUsuario, String nombreUsuario,
+                             Long idProveedor, String nombreProveedor, LocalDate fecha,
+                             String numFactura, String estado) {
         this.idCompra = idCompra;
-    }
-
-    public Long getIdUsuario() {
-        return idUsuario;
-    }
-
-    public void setIdUsuario(Long idUsuario) {
         this.idUsuario = idUsuario;
-    }
-
-    public String getNombreUsuario() {
-        return nombreUsuario;
-    }
-
-    public void setNombreUsuario(String nombreUsuario) {
         this.nombreUsuario = nombreUsuario;
-    }
-
-    public Long getIdProveedor() {
-        return idProveedor;
-    }
-
-    public void setIdProveedor(Long idProveedor) {
         this.idProveedor = idProveedor;
-    }
-
-    public String getNombreProveedor() {
-        return nombreProveedor;
-    }
-
-    public void setNombreProveedor(String nombreProveedor) {
         this.nombreProveedor = nombreProveedor;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
+        this.numFactura = numFactura;
         this.estado = estado;
     }
+
+    // Getters y Setters
+    public Long getIdCompra() { return idCompra; }
+    public void setIdCompra(Long idCompra) { this.idCompra = idCompra; }
+
+    public Long getIdUsuario() { return idUsuario; }
+    public void setIdUsuario(Long idUsuario) { this.idUsuario = idUsuario; }
+
+    public String getNombreUsuario() { return nombreUsuario; }
+    public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
+
+    public Long getIdProveedor() { return idProveedor; }
+    public void setIdProveedor(Long idProveedor) { this.idProveedor = idProveedor; }
+
+    public String getNombreProveedor() { return nombreProveedor; }
+    public void setNombreProveedor(String nombreProveedor) { this.nombreProveedor = nombreProveedor; }
+
+    public LocalDate getFecha() { return fecha; }
+    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
+
+    public String getNumFactura() { return numFactura; }  // NUEVO
+    public void setNumFactura(String numFactura) { this.numFactura = numFactura; }  // NUEVO
+
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 }

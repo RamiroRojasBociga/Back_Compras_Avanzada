@@ -1,9 +1,14 @@
 package com.sistemacompras.sistemacompras_api.dto;
 
+import com.sistemacompras.sistemacompras_api.enums.EstadoProveedor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * DTO para recibir los datos de creación o actualización de un proveedor.
+ * Usado por el controlador al recibir peticiones desde Swagger o el cliente.
+ */
 public class ProveedorRequestDto {
 
     @NotBlank
@@ -21,12 +26,11 @@ public class ProveedorRequestDto {
     @Size(max = 100)
     private String email;
 
-    @NotBlank
-    @Size(max = 50)
-    private String estado;
+    // ✅ Ahora usamos el ENUM directamente (antes era String)
+    @NotNull
+    private EstadoProveedor estado;
 
-    // Getters y setters
-
+    // Getters y Setters
     public String getNombre() {
         return nombre;
     }
@@ -59,12 +63,11 @@ public class ProveedorRequestDto {
         this.email = email;
     }
 
-    public String getEstado() {
+    public EstadoProveedor getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoProveedor estado) {
         this.estado = estado;
     }
 }
-

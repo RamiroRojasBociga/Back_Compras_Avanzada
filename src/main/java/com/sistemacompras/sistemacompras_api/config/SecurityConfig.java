@@ -23,67 +23,66 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // Constructor: inyectamos el filtro JWT
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-
-     //Define la cadena de filtros de seguridad de Spring Security
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Desactivamos CSRF (útil para pruebas con Postman o Swagger)
+                // ===========================================================
+                // 💡 DESACTIVAMOS CSRF PARA PRUEBAS EN SWAGGER
+                // ===========================================================
                 .csrf(csrf -> csrf.disable())
 
-                // Configuramos qué rutas son públicas o protegidas
+                // ===========================================================
+                // 💡 CONFIGURAMOS LAS RUTAS PÚBLICAS
+                // ===========================================================
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints públicos (sin necesidad de token)
-                        .requestMatchers("/api/auth/**", "/doc/**", "/v3/api-docs/**").permitAll()
+                        // ✅ ENDPOINTS QUE NO REQUIEREN TOKEN JWT
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/doc/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
 
-                        // Todo lo demás requiere autenticación JWT
+                                // 💡💡💡 SE AGREGA RUTA COMPLETA DE PROVEEDORES 💡💡💡
+                                "/api/proveedores/**"
+                        ).permitAll()
+
+                        // 🔒 TODO LO DEMÁS REQUIERE AUTENTICACIÓN
                         .anyRequest().authenticated()
                 )
 
-                // Agregamos el filtro JWT antes del filtro de autenticación estándar
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-
-                // Indicamos que no queremos sesiones en el servidor (JWT = stateless)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                // ===========================================================
+                // 💡 DESACTIVAMOS SESIONES Y CONFIGURAMOS FILTRO JWT
+                // ===========================================================
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // ⚠️ IMPORTANTE: el filtro JWT DEBE IR DESPUÉS DE LAS RUTAS PÚBLICAS
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-
-     // Codificador de contraseñas (sin cifrado, solo para pruebas locales)
-
+    // ===========================================================
+    // 💡 ENCODER DE CONTRASEÑAS
+    // ===========================================================
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Definimos qué encoder usar para NUEVAS contraseñas
         String encodingId = "bcrypt";
-
-        // Creamos un mapa con todos los encoders que queremos soportar
         Map<String, PasswordEncoder> encoders = new HashMap<>();
-        encoders.put(encodingId, new BCryptPasswordEncoder());  // Para contraseñas nuevas
-        encoders.put("noop", NoOpPasswordEncoder.getInstance()); // Para contraseñas existentes
-
-        // Creamos el DelegatingPasswordEncoder
+        encoders.put(encodingId, new BCryptPasswordEncoder());
+        encoders.put("noop", NoOpPasswordEncoder.getInstance());
         DelegatingPasswordEncoder delegatingEncoder =
                 new DelegatingPasswordEncoder(encodingId, encoders);
-
-        // IMPORTANTE: Esto permite validar contraseñas SIN prefijo como texto plano
-        // Es necesario para que funcione con las contraseñas que ya tienen {noop} en la BD
-        delegatingEncoder.setDefaultPasswordEncoderForMatches(
-                NoOpPasswordEncoder.getInstance()
-        );
-
+        delegatingEncoder.setDefaultPasswordEncoderForMatches(NoOpPasswordEncoder.getInstance());
         return delegatingEncoder;
     }
 
-
-     //Gestiona la autenticación para el login (útil si luego lo usas con AuthenticationManager)
-
+    // ===========================================================
+    // 💡 AUTHENTICATION MANAGER PARA LOGIN
+    // ===========================================================
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();

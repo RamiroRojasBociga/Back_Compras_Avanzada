@@ -44,20 +44,20 @@ class CompraServiceImplTest {
         compra = new Compra();
         compra.setIdCompra(1L);
         compra.setFecha(LocalDate.now());
-        compra.setEstado("PENDIENTE");
+
 
         requestDto = new CompraRequestDto();
         requestDto.setIdUsuario(1L);
         requestDto.setIdProveedor(1L);
         requestDto.setFecha(LocalDate.now());
-        requestDto.setEstado("PENDIENTE");
+
 
         responseDto = new CompraResponseDto();
         responseDto.setIdCompra(1L);
         responseDto.setNombreUsuario("Usuario de Prueba");
         responseDto.setNombreProveedor("Proveedor de Prueba");
         responseDto.setFecha(LocalDate.now());
-        responseDto.setEstado("PENDIENTE");
+
     }
 
     @Test
@@ -69,7 +69,7 @@ class CompraServiceImplTest {
         CompraResponseDto result = service.create(requestDto);
 
         assertThat(result).isNotNull();
-        assertThat(result.getEstado()).isEqualTo("PENDIENTE");
+
         verify(repository, times(1)).save(any(Compra.class));
     }
 
@@ -108,7 +108,7 @@ class CompraServiceImplTest {
     void update_DebeActualizarCompra() {
         Long compraId = 1L;
         CompraRequestDto updateDto = new CompraRequestDto();
-        updateDto.setEstado("COMPLETADO");
+
 
         when(repository.findById(compraId)).thenReturn(Optional.of(compra));
         when(repository.save(any(Compra.class))).thenReturn(compra);

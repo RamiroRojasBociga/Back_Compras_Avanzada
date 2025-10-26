@@ -72,7 +72,7 @@ class ProductoControllerTest {
         productoResponseDto.setNombreMarca("TechCorp");
         productoResponseDto.setIdUnidadMedida(1L);
         productoResponseDto.setNombreUnidadMedida("Unidad");
-        productoResponseDto.setCantidadUnidadesMedida(1.0f);
+        productoResponseDto.setCantidadUnidadesMedida(1);
         productoResponseDto.setIdImpuesto(2L);
         productoResponseDto.setNombreImpuesto("IVA 10%");
         productoResponseDto.setPorcentajeImpuesto(10.0f);
@@ -114,7 +114,7 @@ class ProductoControllerTest {
         requestDto.setIdMarca(5L);
         requestDto.setIdUnidadMedida(1L);
         requestDto.setIdImpuesto(2L);
-        requestDto.setCantidadUnidadesMedida(1.0f);
+        requestDto.setCantidadUnidadesMedida(1);
         requestDto.setPrecio(new BigDecimal("499.99"));
         requestDto.setStock(100);
         requestDto.setEstado(EstadoProducto.ACTIVO);
@@ -139,7 +139,7 @@ class ProductoControllerTest {
         requestDto.setIdMarca(5L);
         requestDto.setIdUnidadMedida(1L);
         requestDto.setIdImpuesto(2L);
-        requestDto.setCantidadUnidadesMedida(1.0f);
+        requestDto.setCantidadUnidadesMedida(1);
         requestDto.setPrecio(new BigDecimal("1300.00"));
         requestDto.setStock(40);
         requestDto.setEstado(EstadoProducto.ACTIVO);

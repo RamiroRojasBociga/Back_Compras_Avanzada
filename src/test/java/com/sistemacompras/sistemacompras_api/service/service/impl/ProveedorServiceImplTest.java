@@ -3,9 +3,12 @@ package com.sistemacompras.sistemacompras_api.service.service.impl;
 import com.sistemacompras.sistemacompras_api.dto.ProveedorRequestDto;
 import com.sistemacompras.sistemacompras_api.dto.ProveedorResponseDto;
 import com.sistemacompras.sistemacompras_api.entity.Proveedor;
+import com.sistemacompras.sistemacompras_api.enums.EstadoProveedor;
 import com.sistemacompras.sistemacompras_api.exception.ResourceNotFoundException;
 import com.sistemacompras.sistemacompras_api.mapper.ProveedorMapper;
 import com.sistemacompras.sistemacompras_api.repository.ProveedorRepository;
+import com.sistemacompras.sistemacompras_api.enums.EstadoProveedor;
+
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +56,7 @@ class ProveedorServiceImplTest {
         proveedor = new Proveedor();
         proveedor.setIdProveedor(1L);
         proveedor.setNombre("TechGlobal S.A.");
-        proveedor.setEstado("ACTIVO");
+        proveedor.setEstado(EstadoProveedor.ACTIVO);
 
         requestDto = new ProveedorRequestDto();
         requestDto.setNombre("TechGlobal S.A.");

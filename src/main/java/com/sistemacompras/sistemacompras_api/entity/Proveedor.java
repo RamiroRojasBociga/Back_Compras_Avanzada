@@ -1,40 +1,56 @@
 package com.sistemacompras.sistemacompras_api.entity;
 
+import com.sistemacompras.sistemacompras_api.enums.EstadoProveedor;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "proveedores")
 public class Proveedor {
 
-    // Clave primaria autoincremental
+    // Clave primaria
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_proveedor")
     private Long idProveedor;
 
-    // Nombre del proveedor
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String nombre;
 
-    // Relación muchos-a-uno con ciudad
+    // Relación muchos-a-uno con Ciudad
     @ManyToOne
     @JoinColumn(name = "id_ciudad", nullable = false)
     private Ciudad ciudad;
 
-    // Dirección del proveedor
-    @Column(nullable = false)
+    @Column(length = 150)
     private String direccion;
 
-    // Email del proveedor
-    @Column(nullable = false)
+    @Column(length = 100, nullable = false)
     private String email;
 
-    // Estado del proveedor (activo, inactivo, etc.)
-    @Column(nullable = false)
-    private String estado;
+    // Estado manejado por ENUM
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoProveedor estado;
 
-    // Getters y setters
+    // Relación uno-a-muchos con teléfonos
+    @OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProveedorTelefono> telefonos;
 
+    // Fecha de registro automática
+    @Column(name = "fecha_registro", updatable = false)
+    private LocalDateTime fechaRegistro;
+
+    @PrePersist
+    protected void onCreate() {
+        this.fechaRegistro = LocalDateTime.now();
+        if (this.estado == null) {
+            this.estado = EstadoProveedor.ACTIVO; // Valor por defecto
+        }
+    }
+
+    // Getters y Setters
     public Long getIdProveedor() {
         return idProveedor;
     }
@@ -75,13 +91,27 @@ public class Proveedor {
         this.email = email;
     }
 
-    public String getEstado() {
+    public EstadoProveedor getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoProveedor estado) {
         this.estado = estado;
     }
+
+    public List<ProveedorTelefono> getTelefonos() {
+        return telefonos;
+    }
+
+    public void setTelefonos(List<ProveedorTelefono> telefonos) {
+        this.telefonos = telefonos;
+    }
+
+    public LocalDateTime getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(LocalDateTime fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
+    }
 }
-
-

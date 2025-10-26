@@ -1,4 +1,3 @@
-// com.sistemacompras.sistemacompras_api.service.impl.ProductoServiceImpl
 package com.sistemacompras.sistemacompras_api.service.service.impl;
 
 import com.sistemacompras.sistemacompras_api.dto.ProductoRequestDto;
@@ -28,13 +27,14 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Transactional(readOnly = true)
     public List<ProductoResponseDto> findAll() {
-        return mapper.toResponseList(repo.findAll());
+        List<Producto> productos = repo.findAllWithRelations();
+        return mapper.toResponseList(productos);
     }
 
     @Transactional(readOnly = true)
     public ProductoResponseDto findById(Long id) {
-        Producto e = repo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Producto " + id + " no encontrada"));
+        Producto e = repo.findByIdWithRelations(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto " + id + " no encontrado"));
         return mapper.toResponse(e);
     }
 
@@ -42,13 +42,20 @@ public class ProductoServiceImpl implements ProductoService {
         if (repo.existsByNombreIgnoreCase(dto.getNombre())) {
             throw new IllegalArgumentException("El nombre del producto ya existe");
         }
-        Producto saved = repo.save(mapper.toEntity(dto));
-        return mapper.toResponse(saved);
+
+        Producto entity = mapper.toEntity(dto);
+        Producto saved = repo.save(entity);
+
+        // Obtener con relaciones para la respuesta
+        Producto savedWithRelations = repo.findByIdWithRelations(saved.getIdProducto())
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado después de crear"));
+
+        return mapper.toResponse(savedWithRelations);
     }
 
     public ProductoResponseDto update(Long id, ProductoRequestDto dto) {
-        Producto e = repo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Producto " + id + " no encontrada"));
+        Producto e = repo.findByIdWithRelations(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto " + id + " no encontrado"));
 
         if (dto.getNombre() != null
                 && !dto.getNombre().equalsIgnoreCase(e.getNombre())
@@ -57,28 +64,33 @@ public class ProductoServiceImpl implements ProductoService {
         }
 
         mapper.updateEntityFromRequest(dto, e);
-        return mapper.toResponse(repo.save(e));
+        Producto updated = repo.save(e);
+
+        // Obtener con relaciones para la respuesta
+        Producto updatedWithRelations = repo.findByIdWithRelations(updated.getIdProducto())
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado después de actualizar"));
+
+        return mapper.toResponse(updatedWithRelations);
     }
 
     public void delete(Long id) {
         if (!repo.existsById(id)) {
-            throw new ResourceNotFoundException("Producto " + id + " no encontrada");
+            throw new ResourceNotFoundException("Producto " + id + " no encontrado");
         }
         repo.deleteById(id);
     }
 
-    // NUEVOS MÉTODOS CON ENUM
     @Transactional(readOnly = true)
     @Override
     public List<ProductoResponseDto> findByEstado(EstadoProducto estado) {
-        List<Producto> productos = repo.findByEstado(estado);
+        List<Producto> productos = repo.findByEstadoWithRelations(estado);
         return mapper.toResponseList(productos);
     }
 
     @Override
     public void cambiarEstado(Long id, EstadoProducto nuevoEstado) {
-        Producto producto = repo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Producto " + id + " no encontrada"));
+        Producto producto = repo.findByIdWithRelations(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto " + id + " no encontrado"));
         producto.setEstado(nuevoEstado);
         repo.save(producto);
     }

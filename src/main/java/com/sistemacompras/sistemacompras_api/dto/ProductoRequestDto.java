@@ -24,7 +24,7 @@ public class ProductoRequestDto {
 
     @NotNull(message = "La cantidad es obligatoria")
     @Positive(message = "La cantidad debe ser positiva")
-    private Float cantidadUnidadesMedida;
+    private Integer cantidadUnidadesMedida;
 
     @NotNull(message = "El precio es obligatorio")
     @Positive(message = "El precio debe ser positivo")
@@ -34,81 +34,34 @@ public class ProductoRequestDto {
     @Min(value = 0, message = "El stock no puede ser negativo")
     private Integer stock;
 
-    // CAMBIO: Ahora usa el ENUM
     @NotNull(message = "El estado es obligatorio")
     private EstadoProducto estado;
 
-    // GETTERS Y SETTERS - ACTUALIZADOS
+    // Getters y Setters
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public Long getIdCategoria() { return idCategoria; }
+    public void setIdCategoria(Long idCategoria) { this.idCategoria = idCategoria; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public Long getIdMarca() { return idMarca; }
+    public void setIdMarca(Long idMarca) { this.idMarca = idMarca; }
 
-    public Long getIdCategoria() {
-        return idCategoria;
-    }
+    public Long getIdUnidadMedida() { return idUnidadMedida; }
+    public void setIdUnidadMedida(Long idUnidadMedida) { this.idUnidadMedida = idUnidadMedida; }
 
-    public void setIdCategoria(Long idCategoria) {
-        this.idCategoria = idCategoria;
-    }
+    public Long getIdImpuesto() { return idImpuesto; }
+    public void setIdImpuesto(Long idImpuesto) { this.idImpuesto = idImpuesto; }
 
-    public Long getIdMarca() {
-        return idMarca;
-    }
+    public Integer getCantidadUnidadesMedida() { return cantidadUnidadesMedida; }
+    public void setCantidadUnidadesMedida(Integer cantidadUnidadesMedida) { this.cantidadUnidadesMedida = cantidadUnidadesMedida; }
 
-    public void setIdMarca(Long idMarca) {
-        this.idMarca = idMarca;
-    }
+    public BigDecimal getPrecio() { return precio; }
+    public void setPrecio(BigDecimal precio) { this.precio = precio; }
 
-    public Long getIdUnidadMedida() {
-        return idUnidadMedida;
-    }
+    public Integer getStock() { return stock; }
+    public void setStock(Integer stock) { this.stock = stock; }
 
-    public void setIdUnidadMedida(Long idUnidadMedida) {
-        this.idUnidadMedida = idUnidadMedida;
-    }
-
-    public Long getIdImpuesto() {
-        return idImpuesto;
-    }
-
-    public void setIdImpuesto(Long idImpuesto) {
-        this.idImpuesto = idImpuesto;
-    }
-
-    public Float getCantidadUnidadesMedida() {
-        return cantidadUnidadesMedida;
-    }
-
-    public void setCantidadUnidadesMedida(Float cantidadUnidadesMedida) {
-        this.cantidadUnidadesMedida = cantidadUnidadesMedida;
-    }
-
-    public BigDecimal getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(BigDecimal precio) {
-        this.precio = precio;
-    }
-
-    public Integer getStock() {
-        return stock;
-    }
-
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-
-    public EstadoProducto getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoProducto estado) {
-        this.estado = estado;
-    }
+    public EstadoProducto getEstado() { return estado; }
+    public void setEstado(EstadoProducto estado) { this.estado = estado; }
 }
