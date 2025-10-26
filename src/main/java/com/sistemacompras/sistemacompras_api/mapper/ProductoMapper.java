@@ -1,6 +1,3 @@
-// ==========================================================
-// com.sistemacompras.sistemacompras_api.mapper.ProductoMapper
-// ==========================================================
 package com.sistemacompras.sistemacompras_api.mapper;
 
 import com.sistemacompras.sistemacompras_api.dto.ProductoRequestDto;
@@ -13,20 +10,25 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ProductoMapper {
 
-    // 🔹 Mapea los IDs del DTO hacia los objetos relacionados usando su campo "id"
     @Mapping(target = "categoria.id", source = "idCategoria")
     @Mapping(target = "marca.id", source = "idMarca")
     @Mapping(target = "unidadMedida.id", source = "idUnidadMedida")
     @Mapping(target = "impuesto.id", source = "idImpuesto")
     Producto toEntity(ProductoRequestDto req);
 
-    // 🔹 Convierte la entidad a DTO de respuesta
+    @Mapping(source = "categoria.id", target = "idCategoria")
+    @Mapping(source = "categoria.nombre", target = "nombreCategoria")
+    @Mapping(source = "marca.id", target = "idMarca")
+    @Mapping(source = "marca.nombre", target = "nombreMarca")
+    @Mapping(source = "unidadMedida.id", target = "idUnidadMedida")
+    @Mapping(source = "unidadMedida.nombre", target = "nombreUnidadMedida")
+    @Mapping(source = "impuesto.id", target = "idImpuesto")
+    @Mapping(source = "impuesto.nombre", target = "nombreImpuesto")
+    @Mapping(source = "impuesto.porcentaje", target = "porcentajeImpuesto")
     ProductoResponseDto toResponse(Producto entity);
 
-    // 🔹 Convierte una lista de entidades a lista de DTOs
     List<ProductoResponseDto> toResponseList(List<Producto> entities);
 
-    // 🔹 Permite actualizar una entidad sin sobrescribir valores nulos
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "categoria", ignore = true)
     @Mapping(target = "marca", ignore = true)
@@ -34,4 +36,3 @@ public interface ProductoMapper {
     @Mapping(target = "impuesto", ignore = true)
     void updateEntityFromRequest(ProductoRequestDto req, @MappingTarget Producto entity);
 }
-
