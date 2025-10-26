@@ -3,6 +3,7 @@ package com.sistemacompras.sistemacompras_api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sistemacompras.sistemacompras_api.dto.ProveedorRequestDto;
 import com.sistemacompras.sistemacompras_api.dto.ProveedorResponseDto;
+import com.sistemacompras.sistemacompras_api.enums.EstadoProveedor;
 import com.sistemacompras.sistemacompras_api.service.ProveedorService;
 import com.sistemacompras.sistemacompras_api.config.JwtAuthenticationFilter;
 import com.sistemacompras.sistemacompras_api.config.JwtTokenProvider;
@@ -65,7 +66,7 @@ class ProveedorControllerTest {
         proveedorResponseDto.setNombreCiudad("Asunción");
         proveedorResponseDto.setDireccion("Av. Principal 123");
         proveedorResponseDto.setEmail("contacto@techglobal.com");
-        proveedorResponseDto.setEstado("ACTIVO");
+        proveedorResponseDto.setEstado(String.valueOf(EstadoProveedor.ACTIVO));
     }
 
     @Test
@@ -104,7 +105,7 @@ class ProveedorControllerTest {
         requestDto.setIdCiudad(5L);
         requestDto.setDireccion("Calle Falsa 456");
         requestDto.setEmail("ventas@digital.com");
-        requestDto.setEstado("ACTIVO");
+        requestDto.setEstado(EstadoProveedor.ACTIVO);
 
         when(proveedorService.create(any(ProveedorRequestDto.class))).thenReturn(proveedorResponseDto);
 
@@ -124,7 +125,7 @@ class ProveedorControllerTest {
         requestDto.setIdCiudad(10L);
         requestDto.setDireccion("Nueva Dirección 789");
         requestDto.setEmail("info@soluciones.py");
-        requestDto.setEstado("INACTIVO");
+        requestDto.setEstado(EstadoProveedor.INACTIVO);
 
         ProveedorResponseDto responseActualizado = new ProveedorResponseDto();
         responseActualizado.setIdProveedor(1L);
