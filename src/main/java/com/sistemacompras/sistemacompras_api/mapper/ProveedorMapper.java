@@ -1,23 +1,24 @@
-// com.sistemacompras.sistemacompras_api.mapper.ProveedorMapper
 package com.sistemacompras.sistemacompras_api.mapper;
 
-import com.sistemacompras.sistemacompras_api.dto.ProveedorRequestDto;
-import com.sistemacompras.sistemacompras_api.dto.ProveedorResponseDto;
 import com.sistemacompras.sistemacompras_api.entity.Proveedor;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
-@Mapper(componentModel = "spring")
-public interface ProveedorMapper {
-    Proveedor toEntity(ProveedorRequestDto req);
-    ProveedorResponseDto toResponse(Proveedor entity);
-    List<ProveedorResponseDto> toResponseList(List<Proveedor> entities);
+public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEntityFromRequest(ProveedorRequestDto req, @MappingTarget Proveedor entity);
+    // === MÉTODOS CON JOIN FETCH (NUEVOS) ===
+    @Query("SELECT p FROM Proveedor p JOIN FETCH p.ciudad LEFT JOIN FETCH p.telefonos t LEFT JOIN FETCH t.telefono WHERE p.idProveedor = :id")
+    Optional<Proveedor> findByIdWithRelations(@Param("id") Long id);
+
+    @Query("SELECT p FROM Proveedor p JOIN FETCH p.ciudad LEFT JOIN FETCH p.telefonos t LEFT JOIN FETCH t.telefono")
+    List<Proveedor> findAllWithRelations();
+
+    // === MÉTODOS EXISTENTES ===
+    Optional<Proveedor> findByNombreIgnoreCase(String nombre);
+    boolean existsByNombreIgnoreCase(String nombre);
+    List<Proveedor> findByNombreContainingIgnoreCase(String nombre);
 }
-
