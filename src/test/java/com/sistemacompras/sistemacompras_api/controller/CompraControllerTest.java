@@ -1,9 +1,10 @@
 package com.sistemacompras.sistemacompras_api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule; // Import para manejar LocalDate
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sistemacompras.sistemacompras_api.dto.CompraRequestDto;
 import com.sistemacompras.sistemacompras_api.dto.CompraResponseDto;
+import com.sistemacompras.sistemacompras_api.enums.EstadoCompra;
 import com.sistemacompras.sistemacompras_api.service.CompraService;
 import com.sistemacompras.sistemacompras_api.config.JwtAuthenticationFilter;
 import com.sistemacompras.sistemacompras_api.config.JwtTokenProvider;
@@ -40,7 +41,6 @@ class CompraControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    // Modificamos el ObjectMapper para que pueda serializar LocalDate
     private ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @MockitoBean
@@ -63,7 +63,8 @@ class CompraControllerTest {
         compraResponseDto.setIdCompra(1L);
         compraResponseDto.setNombreUsuario("Test User");
         compraResponseDto.setFecha(LocalDate.now());
-        compraResponseDto.setEstado("PENDIENTE");
+        compraResponseDto.setEstado(EstadoCompra.PENDIENTE); // ✅ Usar Enum directamente
+        compraResponseDto.setNumFactura("FACT-2025-0001"); // ✅ Agregar numFactura
     }
 
     @Test
@@ -75,18 +76,18 @@ class CompraControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].estado", is("PENDIENTE")));
+                .andExpect(jsonPath("$[0].estado", is("PENDIENTE"))); // ✅ JSON será String
     }
 
     @Test
     @WithMockUser
     void create_DebeCrearNuevaCompraYRetornar201() throws Exception {
-        // --- SOLUCIÓN: Creamos un DTO válido ---
         CompraRequestDto requestDto = new CompraRequestDto();
         requestDto.setIdUsuario(1L);
         requestDto.setIdProveedor(1L);
-        requestDto.setFecha(LocalDate.now()); // Campo obligatorio
-        requestDto.setEstado("PENDIENTE");    // Campo obligatorio
+        requestDto.setFecha(LocalDate.now());
+        requestDto.setEstado(EstadoCompra.PENDIENTE); // ✅ Usar Enum
+        // numFactura puede ser null (se genera automáticamente)
 
         when(compraService.create(any(CompraRequestDto.class))).thenReturn(compraResponseDto);
 
@@ -94,24 +95,24 @@ class CompraControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto))
                         .with(csrf()))
-                .andExpect(status().isCreated()) // Ahora sí debería ser 201
-                .andExpect(jsonPath("$.estado", is("PENDIENTE")));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado", is("PENDIENTE"))); // ✅ JSON será String
     }
 
     @Test
     @WithMockUser
     void update_DebeActualizarCompraExistente() throws Exception {
-        // --- SOLUCIÓN: Creamos un DTO válido ---
         CompraRequestDto requestDto = new CompraRequestDto();
         requestDto.setIdUsuario(1L);
         requestDto.setIdProveedor(1L);
-        requestDto.setFecha(LocalDate.now()); // Campo obligatorio
-        requestDto.setEstado("COMPLETADO");   // Campo obligatorio
+        requestDto.setFecha(LocalDate.now());
+        requestDto.setEstado(EstadoCompra.PROCESADA); // ✅ CORREGIDO: Estado válido
 
-        // Configuramos el mock para que devuelva un objeto con el estado actualizado
+        // Configurar response actualizada
         CompraResponseDto responseActualizada = new CompraResponseDto();
         responseActualizada.setIdCompra(1L);
-        responseActualizada.setEstado("COMPLETADO");
+        responseActualizada.setEstado(EstadoCompra.PROCESADA); // ✅ Usar Enum
+        responseActualizada.setNumFactura("FACT-2025-0001");
 
         when(compraService.update(eq(1L), any(CompraRequestDto.class))).thenReturn(responseActualizada);
 
@@ -120,7 +121,7 @@ class CompraControllerTest {
                         .content(objectMapper.writeValueAsString(requestDto))
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado", is("COMPLETADO"))); // Verificamos el estado actualizado
+                .andExpect(jsonPath("$.estado", is("PROCESADA"))); // ✅ JSON será String
     }
 
     @Test
@@ -131,5 +132,31 @@ class CompraControllerTest {
         mockMvc.perform(delete("/api/compras/1")
                         .with(csrf()))
                 .andExpect(status().isNoContent());
+    }
+
+    // ✅ NUEVO TEST: Para endpoints específicos de estado
+    @Test
+    @WithMockUser
+    void getByEstado_DebeRetornarComprasPorEstado() throws Exception {
+        when(compraService.findByEstado(EstadoCompra.PENDIENTE)).thenReturn(List.of(compraResponseDto));
+
+        mockMvc.perform(get("/api/compras/estado/PENDIENTE"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].estado", is("PENDIENTE")));
+    }
+
+    // ✅ NUEVO TEST: Para cambiar estado
+    @Test
+    @WithMockUser
+    void cambiarEstado_DebeActualizarEstadoCompra() throws Exception {
+        doNothing().when(compraService).cambiarEstado(1L, EstadoCompra.PROCESADA);
+
+        mockMvc.perform(patch("/api/compras/1/estado")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("\"PROCESADA\"") // ✅ Enviar como string JSON
+                        .with(csrf()))
+                .andExpect(status().isOk());
     }
 }

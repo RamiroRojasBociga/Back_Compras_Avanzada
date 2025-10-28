@@ -22,10 +22,9 @@ public interface CompraMapper {
     @Mapping(source = "proveedor.nombre", target = "nombreProveedor")
     CompraResponseDto toResponse(Compra entity);
 
-    // Método para convertir lista de entidades a lista de DTOs
+    // ✅ AGREGAR ESTE MÉTODO - MapStruct lo genera automáticamente
     List<CompraResponseDto> toResponseList(List<Compra> entities);
 
-    // Método para actualizar entidad desde DTO (ignorando el ID)
     @Mapping(target = "idCompra", ignore = true)
     @Mapping(source = "idUsuario", target = "usuario.idUsuario")
     @Mapping(source = "idProveedor", target = "proveedor.idProveedor")

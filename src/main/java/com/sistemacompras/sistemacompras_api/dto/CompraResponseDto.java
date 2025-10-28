@@ -1,5 +1,7 @@
 package com.sistemacompras.sistemacompras_api.dto;
 
+import com.sistemacompras.sistemacompras_api.enums.EstadoCompra;
+
 import java.time.LocalDate;
 
 public class CompraResponseDto {
@@ -11,14 +13,14 @@ public class CompraResponseDto {
     private String nombreProveedor;
     private LocalDate fecha;
     private String numFactura;  // NUEVO CAMPO
-    private String estado;
+    private EstadoCompra estado;
 
     // Constructores
     public CompraResponseDto() {}
 
     public CompraResponseDto(Long idCompra, Long idUsuario, String nombreUsuario,
                              Long idProveedor, String nombreProveedor, LocalDate fecha,
-                             String numFactura, String estado) {
+                             String numFactura, EstadoCompra estado) {
         this.idCompra = idCompra;
         this.idUsuario = idUsuario;
         this.nombreUsuario = nombreUsuario;
@@ -51,6 +53,6 @@ public class CompraResponseDto {
     public String getNumFactura() { return numFactura; }  // NUEVO
     public void setNumFactura(String numFactura) { this.numFactura = numFactura; }  // NUEVO
 
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public EstadoCompra getEstado() { return estado; }
+    public void setEstado(EstadoCompra estado) { this.estado = estado; }
 }
