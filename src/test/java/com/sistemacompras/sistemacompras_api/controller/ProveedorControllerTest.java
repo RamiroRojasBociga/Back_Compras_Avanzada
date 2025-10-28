@@ -7,7 +7,6 @@ import com.sistemacompras.sistemacompras_api.enums.EstadoProveedor;
 import com.sistemacompras.sistemacompras_api.service.ProveedorService;
 import com.sistemacompras.sistemacompras_api.config.JwtAuthenticationFilter;
 import com.sistemacompras.sistemacompras_api.config.JwtTokenProvider;
-import com.sistemacompras.sistemacompras_api.service.service.impl.CustomUserDetailsServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,24 +48,23 @@ class ProveedorControllerTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
-    private CustomUserDetailsServiceImpl customUserDetailsService;
-
-    @MockitoBean
     private PasswordEncoder passwordEncoder;
+
+    // ✅ ELIMINADO: CustomUserDetailsServiceImpl
 
     private ProveedorResponseDto proveedorResponseDto;
 
     @BeforeEach
     void setUp() {
-        // --- SOLUCIÓN: Creamos el objeto DTO con la estructura correcta ---
         proveedorResponseDto = new ProveedorResponseDto();
-        proveedorResponseDto.setIdProveedor(1L); // Nombre de método correcto
+        proveedorResponseDto.setIdProveedor(1L);
         proveedorResponseDto.setNombre("TechGlobal S.A.");
         proveedorResponseDto.setIdCiudad(10L);
         proveedorResponseDto.setNombreCiudad("Asunción");
         proveedorResponseDto.setDireccion("Av. Principal 123");
         proveedorResponseDto.setEmail("contacto@techglobal.com");
-        proveedorResponseDto.setEstado(String.valueOf(EstadoProveedor.ACTIVO));
+        proveedorResponseDto.setEstado(EstadoProveedor.ACTIVO);
+        proveedorResponseDto.setTelefonos(List.of("6067528412", "3206547890"));
     }
 
     @Test
@@ -78,9 +76,10 @@ class ProveedorControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(1)))
-                // --- SOLUCIÓN: Verificamos con los campos correctos ---
                 .andExpect(jsonPath("$[0].nombre", is("TechGlobal S.A.")))
-                .andExpect(jsonPath("$[0].email", is("contacto@techglobal.com")));
+                .andExpect(jsonPath("$[0].email", is("contacto@techglobal.com")))
+                .andExpect(jsonPath("$[0].estado", is("ACTIVO")))
+                .andExpect(jsonPath("$[0].telefonos[0]", is("6067528412")));
     }
 
     @Test
@@ -90,22 +89,23 @@ class ProveedorControllerTest {
 
         mockMvc.perform(get("/api/proveedores/1"))
                 .andExpect(status().isOk())
-                // --- SOLUCIÓN: Usamos los nombres de campo correctos en el JSONPath ---
                 .andExpect(jsonPath("$.idProveedor", is(1)))
                 .andExpect(jsonPath("$.nombre", is("TechGlobal S.A.")))
-                .andExpect(jsonPath("$.nombreCiudad", is("Asunción")));
+                .andExpect(jsonPath("$.nombreCiudad", is("Asunción")))
+                .andExpect(jsonPath("$.estado", is("ACTIVO")))
+                .andExpect(jsonPath("$.telefonos", hasSize(2)));
     }
 
     @Test
     @WithMockUser
     void create_DebeCrearNuevoProveedorYRetornar201() throws Exception {
-        // Asumimos que el RequestDto tiene campos similares para pasar la validación
         ProveedorRequestDto requestDto = new ProveedorRequestDto();
         requestDto.setNombre("Importadora Digital");
         requestDto.setIdCiudad(5L);
         requestDto.setDireccion("Calle Falsa 456");
         requestDto.setEmail("ventas@digital.com");
         requestDto.setEstado(EstadoProveedor.ACTIVO);
+        requestDto.setTelefonos(List.of("123456789", "987654321"));
 
         when(proveedorService.create(any(ProveedorRequestDto.class))).thenReturn(proveedorResponseDto);
 
@@ -114,7 +114,8 @@ class ProveedorControllerTest {
                         .content(objectMapper.writeValueAsString(requestDto))
                         .with(csrf()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.nombre", is("TechGlobal S.A.")));
+                .andExpect(jsonPath("$.nombre", is("TechGlobal S.A.")))
+                .andExpect(jsonPath("$.telefonos", hasSize(2)));
     }
 
     @Test
@@ -126,10 +127,13 @@ class ProveedorControllerTest {
         requestDto.setDireccion("Nueva Dirección 789");
         requestDto.setEmail("info@soluciones.py");
         requestDto.setEstado(EstadoProveedor.INACTIVO);
+        requestDto.setTelefonos(List.of("555555555"));
 
         ProveedorResponseDto responseActualizado = new ProveedorResponseDto();
         responseActualizado.setIdProveedor(1L);
         responseActualizado.setNombre("Soluciones Informáticas Paraguay");
+        responseActualizado.setEstado(EstadoProveedor.INACTIVO);
+        responseActualizado.setTelefonos(List.of("555555555"));
 
         when(proveedorService.update(eq(1L), any(ProveedorRequestDto.class))).thenReturn(responseActualizado);
 
@@ -138,7 +142,8 @@ class ProveedorControllerTest {
                         .content(objectMapper.writeValueAsString(requestDto))
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre", is("Soluciones Informáticas Paraguay")));
+                .andExpect(jsonPath("$.nombre", is("Soluciones Informáticas Paraguay")))
+                .andExpect(jsonPath("$.estado", is("INACTIVO")));
     }
 
     @Test

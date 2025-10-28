@@ -1,24 +1,39 @@
 package com.sistemacompras.sistemacompras_api.mapper;
 
+import com.sistemacompras.sistemacompras_api.dto.ProveedorRequestDto;
+import com.sistemacompras.sistemacompras_api.dto.ProveedorResponseDto;
 import com.sistemacompras.sistemacompras_api.entity.Proveedor;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import com.sistemacompras.sistemacompras_api.entity.ProveedorTelefono;
+import com.sistemacompras.sistemacompras_api.entity.Telefono;
+import org.mapstruct.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
-public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
+@Mapper(componentModel = "spring")
+public interface ProveedorMapper {
 
-    // === MÉTODOS CON JOIN FETCH (NUEVOS) ===
-    @Query("SELECT p FROM Proveedor p JOIN FETCH p.ciudad LEFT JOIN FETCH p.telefonos t LEFT JOIN FETCH t.telefono WHERE p.idProveedor = :id")
-    Optional<Proveedor> findByIdWithRelations(@Param("id") Long id);
+    @Mapping(target = "ciudad.id", source = "idCiudad")
+    @Mapping(target = "telefonos", ignore = true) // Se maneja en el servicio
+    Proveedor toEntity(ProveedorRequestDto dto);
 
-    @Query("SELECT p FROM Proveedor p JOIN FETCH p.ciudad LEFT JOIN FETCH p.telefonos t LEFT JOIN FETCH t.telefono")
-    List<Proveedor> findAllWithRelations();
+    @Mapping(source = "ciudad.id", target = "idCiudad")
+    @Mapping(source = "ciudad.nombre", target = "nombreCiudad")
+    @Mapping(source = "telefonos", target = "telefonos", qualifiedByName = "mapTelefonos")
+    ProveedorResponseDto toResponse(Proveedor entity);
 
-    // === MÉTODOS EXISTENTES ===
-    Optional<Proveedor> findByNombreIgnoreCase(String nombre);
-    boolean existsByNombreIgnoreCase(String nombre);
-    List<Proveedor> findByNombreContainingIgnoreCase(String nombre);
+    List<ProveedorResponseDto> toResponseList(List<Proveedor> entities);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "ciudad", ignore = true)
+    @Mapping(target = "telefonos", ignore = true)
+    void updateEntityFromRequest(ProveedorRequestDto dto, @MappingTarget Proveedor entity);
+
+    @Named("mapTelefonos")
+    default List<String> mapTelefonos(List<ProveedorTelefono> proveedorTelefonos) {
+        if (proveedorTelefonos == null) return List.of();
+        return proveedorTelefonos.stream()
+                .map(pt -> pt.getTelefono().getNumero())
+                .collect(Collectors.toList());
+    }
 }

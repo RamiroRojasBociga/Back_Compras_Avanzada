@@ -12,4 +12,6 @@ public interface DetalleCompraService {
     DetalleCompraResponseDto create(DetalleCompraRequestDto dto);
     DetalleCompraResponseDto update(Long id, DetalleCompraRequestDto dto);
     void delete(Long id);
+
+
 }

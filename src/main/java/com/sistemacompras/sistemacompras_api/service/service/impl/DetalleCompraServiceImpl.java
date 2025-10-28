@@ -25,27 +25,43 @@ public class DetalleCompraServiceImpl implements DetalleCompraService {
 
     @Transactional(readOnly = true)
     public List<DetalleCompraResponseDto> findAll() {
-        return mapper.toResponseList(repo.findAll());
+        // CORREGIDO: Usar JOIN FETCH
+        List<DetalleCompra> detalles = repo.findAllWithRelations();
+        return mapper.toResponseList(detalles);
     }
 
     @Transactional(readOnly = true)
     public DetalleCompraResponseDto findById(Long id) {
-        DetalleCompra e = repo.findById(id)
+        //CORREGIDO: Usar JOIN FETCH
+        DetalleCompra e = repo.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DetalleCompra " + id + " no encontrada"));
         return mapper.toResponse(e);
     }
 
     public DetalleCompraResponseDto create(DetalleCompraRequestDto dto) {
-        DetalleCompra saved = repo.save(mapper.toEntity(dto));
-        return mapper.toResponse(saved);
+        DetalleCompra entity = mapper.toEntity(dto);
+        DetalleCompra saved = repo.save(entity);
+
+        //CORREGIDO: Obtener con relaciones para la respuesta
+        DetalleCompra savedWithRelations = repo.findByIdWithRelations(saved.getIdDetalleCompra())
+                .orElseThrow(() -> new ResourceNotFoundException("DetalleCompra no encontrada después de crear"));
+
+        return mapper.toResponse(savedWithRelations);
     }
 
     public DetalleCompraResponseDto update(Long id, DetalleCompraRequestDto dto) {
-        DetalleCompra e = repo.findById(id)
+        // CORREGIDO: Usar JOIN FETCH
+        DetalleCompra e = repo.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DetalleCompra " + id + " no encontrada"));
 
         mapper.updateEntityFromRequest(dto, e);
-        return mapper.toResponse(repo.save(e));
+        DetalleCompra updated = repo.save(e);
+
+        //CORREGIDO: Obtener con relaciones para la respuesta
+        DetalleCompra updatedWithRelations = repo.findByIdWithRelations(updated.getIdDetalleCompra())
+                .orElseThrow(() -> new ResourceNotFoundException("DetalleCompra no encontrada después de actualizar"));
+
+        return mapper.toResponse(updatedWithRelations);
     }
 
     public void delete(Long id) {

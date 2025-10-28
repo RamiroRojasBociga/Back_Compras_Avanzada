@@ -1,6 +1,4 @@
-// com.sistemacompras.sistemacompras_api.service.impl.TelefonoServiceImpl
-package com.sistemacompras.sistemacompras_api.service.service.impl;
-
+package com.sistemacompras.sistemacompras_api.service.impl; // Corrige el paquete
 
 import com.sistemacompras.sistemacompras_api.dto.TelefonoRequestDto;
 import com.sistemacompras.sistemacompras_api.dto.TelefonoResponseDto;
@@ -34,13 +32,13 @@ public class TelefonoServiceImpl implements TelefonoService {
     @Transactional(readOnly = true)
     public TelefonoResponseDto findById(Long id) {
         Telefono e = repo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Telefono " + id + " no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Teléfono " + id + " no encontrado"));
         return mapper.toResponse(e);
     }
 
     public TelefonoResponseDto create(TelefonoRequestDto dto) {
-        if (repo.existsByNumeroIgnoreCase(dto.getNumero())) {
-            throw new IllegalArgumentException("El numero de telefono ya existe");
+        if (repo.existsByNumero(dto.getNumero())) { // ✅ QUITAR IgnoreCase
+            throw new IllegalArgumentException("El número de teléfono ya existe");
         }
         Telefono saved = repo.save(mapper.toEntity(dto));
         return mapper.toResponse(saved);
@@ -48,12 +46,12 @@ public class TelefonoServiceImpl implements TelefonoService {
 
     public TelefonoResponseDto update(Long id, TelefonoRequestDto dto) {
         Telefono e = repo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Telefono " + id + " no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Teléfono " + id + " no encontrado"));
 
         if (dto.getNumero() != null
-                && !dto.getNumero().equalsIgnoreCase(e.getNumero())
-                && repo.existsByNumeroIgnoreCase(dto.getNumero())) {
-            throw new IllegalArgumentException("El numero de telefono ya existe");
+                && !dto.getNumero().equals(e.getNumero()) // ✅ QUITAR equalsIgnoreCase
+                && repo.existsByNumero(dto.getNumero())) { // ✅ QUITAR IgnoreCase
+            throw new IllegalArgumentException("El número de teléfono ya existe");
         }
 
         mapper.updateEntityFromRequest(dto, e);
@@ -62,7 +60,7 @@ public class TelefonoServiceImpl implements TelefonoService {
 
     public void delete(Long id) {
         if (!repo.existsById(id)) {
-            throw new ResourceNotFoundException("Telefono " + id + " no encontrada");
+            throw new ResourceNotFoundException("Teléfono " + id + " no encontrado");
         }
         repo.deleteById(id);
     }

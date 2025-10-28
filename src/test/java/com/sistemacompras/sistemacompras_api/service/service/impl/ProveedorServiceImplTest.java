@@ -64,7 +64,7 @@ class ProveedorServiceImplTest {
         responseDto = new ProveedorResponseDto();
         responseDto.setIdProveedor(1L);
         responseDto.setNombre("TechGlobal S.A.");
-        responseDto.setEstado("ACTIVO");
+        responseDto.setEstado(EstadoProveedor.ACTIVO);
     }
 
     // --- Tests para el método create() ---
