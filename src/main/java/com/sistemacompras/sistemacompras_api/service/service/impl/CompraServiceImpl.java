@@ -3,6 +3,7 @@ package com.sistemacompras.sistemacompras_api.service.service.impl;
 import com.sistemacompras.sistemacompras_api.dto.CompraRequestDto;
 import com.sistemacompras.sistemacompras_api.dto.CompraResponseDto;
 import com.sistemacompras.sistemacompras_api.entity.Compra;
+import com.sistemacompras.sistemacompras_api.enums.EstadoCompra;
 import com.sistemacompras.sistemacompras_api.exception.ResourceNotFoundException;
 import com.sistemacompras.sistemacompras_api.mapper.CompraMapper;
 import com.sistemacompras.sistemacompras_api.repository.CompraRepository;
@@ -28,27 +29,28 @@ public class CompraServiceImpl implements CompraService {
 
     @Transactional(readOnly = true)
     public List<CompraResponseDto> findAll() {
-        // Usar el método con JOIN FETCH
         List<Compra> compras = repo.findAllWithRelations();
-        return mapper.toResponseList(compras);
+        return mapper.toResponseList(compras); // ✅ Ahora este método existe
     }
 
     @Transactional(readOnly = true)
     public CompraResponseDto findById(Long id) {
-        // Usar el método con JOIN FETCH
         Compra e = repo.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Compra " + id + " no encontrada"));
         return mapper.toResponse(e);
     }
 
     public CompraResponseDto create(CompraRequestDto dto) {
-        Compra entity = mapper.toEntity(dto);
-
-        // Generar número de factura automático si no se proporcionó
-        if (dto.getNumFactura() == null || dto.getNumFactura().trim().isEmpty()) {
-            String numeroFactura = generarNumeroFactura();
-            entity.setNumFactura(numeroFactura);
+        // Validar y asignar estado por defecto si es null
+        if (dto.getEstado() == null) {
+            dto.setEstado(EstadoCompra.PENDIENTE);
         }
+
+        // ✅ SIEMPRE generar número de factura automáticamente
+        String numeroFactura = generarNumeroFactura();
+
+        Compra entity = mapper.toEntity(dto);
+        entity.setNumFactura(numeroFactura); // ✅ Asignar siempre
 
         Compra saved = repo.save(entity);
 
@@ -80,13 +82,34 @@ public class CompraServiceImpl implements CompraService {
         repo.deleteById(id);
     }
 
+    // ✅ NUEVOS MÉTODOS PARA MANEJAR ESTADOS
+    @Transactional(readOnly = true)
+    public List<CompraResponseDto> findByEstado(EstadoCompra estado) {
+        List<Compra> compras = repo.findByEstado(estado);
+        return mapper.toResponseList(compras); // ✅ Usar el nuevo método
+    }
+
+    public void cambiarEstado(Long id, EstadoCompra nuevoEstado) {
+        Compra compra = repo.findByIdWithRelations(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Compra " + id + " no encontrada"));
+        compra.setEstado(nuevoEstado);
+        repo.save(compra);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CompraResponseDto> findComprasPendientes() {
+        return findByEstado(EstadoCompra.PENDIENTE);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CompraResponseDto> findComprasProcesadas() {
+        return findByEstado(EstadoCompra.PROCESADA);
+    }
+
     // Método para generar número de factura automático
     private String generarNumeroFactura() {
-        // Contar compras existentes para generar número consecutivo
         long totalCompras = repo.count();
         String año = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy"));
-
-        // Formato: FACT-2025-0001, FACT-2025-0002, etc.
         return "FACT-" + año + "-" + String.format("%04d", totalCompras + 1);
     }
 }

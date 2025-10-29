@@ -1,37 +1,45 @@
 package com.sistemacompras.sistemacompras_api.dto;
 
+import com.sistemacompras.sistemacompras_api.enums.EstadoCompra;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 
 public class CompraRequestDto {
 
+    @Schema(description = "ID del usuario", example = "1")
     @NotNull
     private Long idUsuario;
 
+    @Schema(description = "ID del proveedor", example = "1")
     @NotNull
     private Long idProveedor;
 
+    @Schema(description = "Fecha de la compra", example = "2025-10-28")
     @NotNull
     private LocalDate fecha;
 
-    private String numFactura;  // QUITADO @NotBlank - ahora puede ser null
+    @Schema(
+            description = "Estado de la compra",
+            example = "PENDIENTE",
+            allowableValues = {"PENDIENTE", "PROCESADA", "ANULADA", "ENTREGADA", "FACTURADA"}
+    )
+    @NotNull
+    private EstadoCompra estado;
 
-    @NotBlank
-    private String estado;
+    // ✅ ELIMINADO: numFactura - siempre se genera automáticamente
 
     // Constructores
     public CompraRequestDto() {}
 
-    public CompraRequestDto(Long idUsuario, Long idProveedor, LocalDate fecha, String numFactura, String estado) {
+    public CompraRequestDto(Long idUsuario, Long idProveedor, LocalDate fecha, EstadoCompra estado) {
         this.idUsuario = idUsuario;
         this.idProveedor = idProveedor;
         this.fecha = fecha;
-        this.numFactura = numFactura;
         this.estado = estado;
     }
 
-    // Getters y Setters
+    // Getters y Setters (SIN numFactura)
     public Long getIdUsuario() { return idUsuario; }
     public void setIdUsuario(Long idUsuario) { this.idUsuario = idUsuario; }
 
@@ -41,9 +49,6 @@ public class CompraRequestDto {
     public LocalDate getFecha() { return fecha; }
     public void setFecha(LocalDate fecha) { this.fecha = fecha; }
 
-    public String getNumFactura() { return numFactura; }
-    public void setNumFactura(String numFactura) { this.numFactura = numFactura; }
-
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public EstadoCompra getEstado() { return estado; }
+    public void setEstado(EstadoCompra estado) { this.estado = estado; }
 }

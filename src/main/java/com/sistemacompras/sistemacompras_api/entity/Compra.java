@@ -1,5 +1,6 @@
 package com.sistemacompras.sistemacompras_api.entity;
 
+import com.sistemacompras.sistemacompras_api.enums.EstadoCompra;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -27,13 +28,23 @@ public class Compra {
     @Column(name = "num_factura", nullable = false)
     private String numFactura;
 
-    @Column(name = "estado", nullable = false)
-    private String estado;
+    // CAMBIO: De String a Enum
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false, length = 20)
+    private EstadoCompra estado;  // ANTES: private String estado;
+
+    // Valor por defecto
+    @PrePersist
+    protected void onCreate() {
+        if (this.estado == null) {
+            this.estado = EstadoCompra.PENDIENTE;
+        }
+    }
 
     // Constructores
     public Compra() {}
 
-    public Compra(Long idCompra, Usuario usuario, Proveedor proveedor, LocalDate fecha, String numFactura, String estado) {
+    public Compra(Long idCompra, Usuario usuario, Proveedor proveedor, LocalDate fecha, String numFactura, EstadoCompra estado) {
         this.idCompra = idCompra;
         this.usuario = usuario;
         this.proveedor = proveedor;
@@ -43,6 +54,7 @@ public class Compra {
     }
 
     // Getters y setters
+
     public Long getIdCompra() {
         return idCompra;
     }
@@ -75,7 +87,6 @@ public class Compra {
         this.fecha = fecha;
     }
 
-    // AGREGAR GETTER Y SETTER para numFactura
     public String getNumFactura() {
         return numFactura;
     }
@@ -84,11 +95,11 @@ public class Compra {
         this.numFactura = numFactura;
     }
 
-    public String getEstado() {
+    public EstadoCompra getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoCompra estado) {
         this.estado = estado;
     }
 }
