@@ -15,7 +15,7 @@ import java.util.List;
 // import io.swagger.v3.oas.annotations.tags.Tag;
 
 // @Tag(name = "Telefonos")
-@RestController
+//@RestController
 @RequestMapping("/api/Telefonos")
 public class TelefonoController {
 
