@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.HashMap;
 import java.util.Map;
 
+// Configuracion de seguridad de la aplicacion
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -27,47 +28,44 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    // Configura la cadena de filtros de seguridad
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // ===========================================================
-                // 💡 DESACTIVAMOS CSRF PARA PRUEBAS EN SWAGGER
-                // ===========================================================
+                // Habilita CORS usando la configuracion de CorsConfig
+                .cors(cors -> {})
+
+                // Desactiva CSRF para APIs REST
                 .csrf(csrf -> csrf.disable())
 
-                // ===========================================================
-                // 💡 CONFIGURAMOS LAS RUTAS PÚBLICAS
-                // ===========================================================
+                // Configura las rutas publicas y privadas
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ ENDPOINTS QUE NO REQUIEREN TOKEN JWT
+                        // Endpoints que NO requieren token JWT
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/doc/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-
-                                // 💡💡💡 SE AGREGA RUTA COMPLETA DE PROVEEDORES 💡💡💡
                                 "/api/proveedores/**"
                         ).permitAll()
 
-                        // 🔒 TODO LO DEMÁS REQUIERE AUTENTICACIÓN
+                        // Todo lo demas requiere autenticacion
                         .anyRequest().authenticated()
                 )
 
-                // ===========================================================
-                // 💡 DESACTIVAMOS SESIONES Y CONFIGURAMOS FILTRO JWT
-                // ===========================================================
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // ⚠️ IMPORTANTE: el filtro JWT DEBE IR DESPUÉS DE LAS RUTAS PÚBLICAS
+                // Desactiva sesiones (API REST sin estado)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                // Agrega el filtro JWT antes del filtro de autenticacion
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ===========================================================
-    // 💡 ENCODER DE CONTRASEÑAS
-    // ===========================================================
+    // Encoder de contraseñas que soporta bcrypt y noop
     @Bean
     public PasswordEncoder passwordEncoder() {
         String encodingId = "bcrypt";
@@ -80,9 +78,7 @@ public class SecurityConfig {
         return delegatingEncoder;
     }
 
-    // ===========================================================
-    // 💡 AUTHENTICATION MANAGER PARA LOGIN
-    // ===========================================================
+    // Authentication Manager para el login
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
