@@ -2,6 +2,7 @@ package com.sistemacompras.sistemacompras_api.controller;
 
 import com.sistemacompras.sistemacompras_api.dto.UsuarioRequestDto;
 import com.sistemacompras.sistemacompras_api.dto.UsuarioResponseDto;
+import com.sistemacompras.sistemacompras_api.dto.UsuarioUpdateDto;
 import com.sistemacompras.sistemacompras_api.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,8 +35,9 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
     }
 
+    // ÚNICO método update - usa UsuarioUpdateDto
     @PutMapping("/{id}")
-    public UsuarioResponseDto update(@PathVariable Long id, @Valid @RequestBody UsuarioRequestDto dto) {
+    public UsuarioResponseDto update(@PathVariable Long id, @Valid @RequestBody UsuarioUpdateDto dto) {
         return service.update(id, dto);
     }
 

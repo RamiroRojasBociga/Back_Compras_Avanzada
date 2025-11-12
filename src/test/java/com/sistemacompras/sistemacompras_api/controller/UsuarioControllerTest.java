@@ -3,6 +3,7 @@ package com.sistemacompras.sistemacompras_api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sistemacompras.sistemacompras_api.dto.UsuarioRequestDto;
 import com.sistemacompras.sistemacompras_api.dto.UsuarioResponseDto;
+import com.sistemacompras.sistemacompras_api.dto.UsuarioUpdateDto; // NUEVO IMPORT
 import com.sistemacompras.sistemacompras_api.service.UsuarioService;
 
 // Imports de seguridad y configuración de test
@@ -85,31 +86,53 @@ class UsuarioControllerTest {
                 .andExpect(jsonPath("$.nombre", is("Juan Pérez")));
     }
 
+    // CORREGIDO: Ahora usa UsuarioUpdateDto en lugar de UsuarioRequestDto
     @Test
     @WithMockUser
     void update_DebeActualizarUsuarioExistente() throws Exception {
-        // --- SOLUCIÓN: Creamos un DTO de solicitud completo y válido ---
-        UsuarioRequestDto requestDto = new UsuarioRequestDto();
-        requestDto.setNombre("Juan Pérez Actualizado");
-        requestDto.setEmail("juan.actualizado@example.com"); // Campo obligatorio
-        requestDto.setTelefono("0999888777");             // Campo obligatorio
-        requestDto.setPassword("otraClaveSegura456");      // Campo obligatorio
+        // Crear DTO de actualización (password es opcional)
+        UsuarioUpdateDto updateDto = new UsuarioUpdateDto();
+        updateDto.setNombre("Juan Pérez Actualizado");
+        updateDto.setEmail("juan.actualizado@example.com");
+        updateDto.setTelefono("0999888777");
+        // No se establece password - se mantiene el actual
 
         UsuarioResponseDto responseActualizado = new UsuarioResponseDto();
         responseActualizado.setIdUsuario(1L);
         responseActualizado.setNombre("Juan Pérez Actualizado");
+        responseActualizado.setEmail("juan.actualizado@example.com");
+        responseActualizado.setTelefono("0999888777");
 
-        when(usuarioService.update(eq(1L), any(UsuarioRequestDto.class))).thenReturn(responseActualizado);
+        when(usuarioService.update(eq(1L), any(UsuarioUpdateDto.class))).thenReturn(responseActualizado);
 
         mockMvc.perform(put("/api/usuarios/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto))
+                        .content(objectMapper.writeValueAsString(updateDto))
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre", is("Juan Pérez Actualizado")));
     }
 
-    // Los tests para list, get y delete no necesitan cambios
+    // NUEVO TEST: Actualización con nuevo password
+    @Test
+    @WithMockUser
+    void update_DebeActualizarUsuarioConNuevoPassword() throws Exception {
+        // Crear DTO de actualización incluyendo nuevo password
+        UsuarioUpdateDto updateDto = new UsuarioUpdateDto();
+        updateDto.setNombre("Juan Pérez");
+        updateDto.setEmail("juan.perez@example.com");
+        updateDto.setTelefono("0999888777");
+        updateDto.setPassword("nuevoPassword123"); // Cambiar password
+
+        when(usuarioService.update(eq(1L), any(UsuarioUpdateDto.class))).thenReturn(usuarioResponseDto);
+
+        mockMvc.perform(put("/api/usuarios/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+    }
+
     @Test
     @WithMockUser
     void list_DebeRetornarListaDeUsuarios() throws Exception {

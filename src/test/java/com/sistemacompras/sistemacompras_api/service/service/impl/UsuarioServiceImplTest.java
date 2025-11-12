@@ -2,6 +2,7 @@ package com.sistemacompras.sistemacompras_api.service.service.impl;
 
 import com.sistemacompras.sistemacompras_api.dto.UsuarioRequestDto;
 import com.sistemacompras.sistemacompras_api.dto.UsuarioResponseDto;
+import com.sistemacompras.sistemacompras_api.dto.UsuarioUpdateDto; // NUEVO IMPORT
 import com.sistemacompras.sistemacompras_api.entity.Usuario;
 import com.sistemacompras.sistemacompras_api.exception.ResourceNotFoundException;
 import com.sistemacompras.sistemacompras_api.mapper.UsuarioMapper;
@@ -24,11 +25,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
-// @ExtendWith(MockitoExtension.class): Habilita Mockito en JUnit 5 para poder usar @Mock y @InjectMocks.
+// Habilita Mockito en JUnit 5 para usar @Mock y @InjectMocks
 @ExtendWith(MockitoExtension.class)
 class UsuarioServiceImplTest {
 
-    // @Mock: Crea un objeto simulado (mock) para las dependencias del servicio.
+    // Crea objetos simulados (mocks) para las dependencias del servicio
     @Mock
     private UsuarioRepository repository;
 
@@ -38,40 +39,43 @@ class UsuarioServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    // @InjectMocks: Crea una instancia real de UsuarioServiceImpl e inyecta los mocks.
+    // Crea instancia real de UsuarioServiceImpl e inyecta los mocks
     @InjectMocks
     private UsuarioServiceImpl service;
 
-    // --- Objetos de prueba ---
+    // Objetos de prueba
     private Usuario usuario;
     private UsuarioRequestDto requestDto;
     private UsuarioResponseDto responseDto;
 
-    // @BeforeEach: Se ejecuta antes de cada test para preparar un estado limpio.
+    // Se ejecuta antes de cada test para preparar estado limpio
     @BeforeEach
     void setUp() {
         usuario = new Usuario();
         usuario.setIdUsuario(1L);
         usuario.setNombre("testuser");
         usuario.setEmail("test@email.com");
-        usuario.setPassword("contraseña-hasheada"); // Simula una contraseña ya hasheada en la BD.
+        usuario.setTelefono("3001234567");
+        usuario.setPassword("contraseña-hasheada"); // Simula contraseña ya hasheada en BD
 
         requestDto = new UsuarioRequestDto();
         requestDto.setNombre("testuser");
         requestDto.setEmail("test@email.com");
-        requestDto.setPassword("contraseña-plana"); // La contraseña que vendría del cliente.
+        requestDto.setTelefono("3001234567");
+        requestDto.setPassword("contraseña-plana"); // Contraseña que vendría del cliente
 
         responseDto = new UsuarioResponseDto();
         responseDto.setIdUsuario(1L);
         responseDto.setNombre("testuser");
         responseDto.setEmail("test@email.com");
+        responseDto.setTelefono("3001234567");
     }
 
-    // --- Test para create() con encriptación ---
+    // Test para create() con encriptación
     @Test
     void create_DebeEncriptarPasswordAntesDeGuardar() {
         // Given
-        when(repository.existsByNombreIgnoreCase("testuser")).thenReturn(false);
+        when(repository.existsByEmail("test@email.com")).thenReturn(false);
         when(mapper.toEntity(requestDto)).thenReturn(usuario);
         when(passwordEncoder.encode("contraseña-plana")).thenReturn("contraseña-hasheada");
         when(repository.save(any(Usuario.class))).thenReturn(usuario);
@@ -80,35 +84,39 @@ class UsuarioServiceImplTest {
         // When
         service.create(requestDto);
 
-        // Then
-        // VERIFICACIÓN CLAVE 1: Aseguramos que se llamó al método de encriptación.
+        // Then - Verificar que se llamó al método de encriptación
         verify(passwordEncoder).encode("contraseña-plana");
 
-        // VERIFICACIÓN CLAVE 2: Capturamos el objeto `Usuario` que se pasó al método `save`...
+        // Capturar el objeto Usuario que se pasó a save
         ArgumentCaptor<Usuario> usuarioCaptor = ArgumentCaptor.forClass(Usuario.class);
         verify(repository).save(usuarioCaptor.capture());
 
-        // ...y verificamos que la contraseña de ese objeto es la que fue "hasheada" por nuestro mock.
+        // Verificar que la contraseña del objeto es la hasheada
         Usuario usuarioGuardado = usuarioCaptor.getValue();
         assertThat(usuarioGuardado.getPassword()).isEqualTo("contraseña-hasheada");
     }
 
-    // --- Tests para update() con encriptación ---
+    // CORREGIDO: Test para update() con UsuarioUpdateDto - encripta si se proporciona password
     @Test
     void update_DebeEncriptarPasswordSiSeProporcionaUnaNueva() {
         // Given
         Long usuarioId = 1L;
-        UsuarioRequestDto updateDto = new UsuarioRequestDto();
+        UsuarioUpdateDto updateDto = new UsuarioUpdateDto(); // Usar UsuarioUpdateDto
+        updateDto.setNombre("testuser");
+        updateDto.setEmail("test@email.com");
+        updateDto.setTelefono("3001234567");
         updateDto.setPassword("nueva-contraseña-plana");
 
         when(repository.findById(usuarioId)).thenReturn(Optional.of(usuario));
+        when(repository.existsByEmail("test@email.com")).thenReturn(false);
         when(passwordEncoder.encode("nueva-contraseña-plana")).thenReturn("nueva-contraseña-hasheada");
         when(repository.save(any(Usuario.class))).thenReturn(usuario);
+        when(mapper.toResponse(usuario)).thenReturn(responseDto);
 
         // When
         service.update(usuarioId, updateDto);
 
-        // Then
+        // Then - Verificar encriptación
         verify(passwordEncoder).encode("nueva-contraseña-plana");
         ArgumentCaptor<Usuario> usuarioCaptor = ArgumentCaptor.forClass(Usuario.class);
         verify(repository).save(usuarioCaptor.capture());
@@ -117,25 +125,53 @@ class UsuarioServiceImplTest {
         assertThat(usuarioGuardado.getPassword()).isEqualTo("nueva-contraseña-hasheada");
     }
 
+    // CORREGIDO: Test para update() sin password - NO debe encriptar
     @Test
     void update_NoDebeEncriptarPasswordSiNoSeProporciona() {
         // Given
         Long usuarioId = 1L;
-        UsuarioRequestDto updateDto = new UsuarioRequestDto();
+        UsuarioUpdateDto updateDto = new UsuarioUpdateDto(); // Usar UsuarioUpdateDto
         updateDto.setNombre("nuevo-nombre");
+        updateDto.setEmail("test@email.com");
+        updateDto.setTelefono("3009876543");
+        // No se establece password - debe mantenerse el actual
 
         when(repository.findById(usuarioId)).thenReturn(Optional.of(usuario));
+        when(repository.existsByEmail("test@email.com")).thenReturn(false);
         when(repository.save(any(Usuario.class))).thenReturn(usuario);
+        when(mapper.toResponse(usuario)).thenReturn(responseDto);
 
         // When
         service.update(usuarioId, updateDto);
 
-        // Then
-        // VERIFICACIÓN CLAVE: Aseguramos que el método de encriptación NUNCA fue llamado.
+        // Then - Verificar que el método de encriptación NUNCA fue llamado
         verify(passwordEncoder, never()).encode(anyString());
     }
 
-    // --- Otros tests CRUD y de búsqueda ---
+    // NUEVO: Test para update() con password vacío - NO debe encriptar
+    @Test
+    void update_NoDebeEncriptarPasswordSiEsVacio() {
+        // Given
+        Long usuarioId = 1L;
+        UsuarioUpdateDto updateDto = new UsuarioUpdateDto();
+        updateDto.setNombre("testuser");
+        updateDto.setEmail("test@email.com");
+        updateDto.setTelefono("3001234567");
+        updateDto.setPassword("   "); // Password vacío o con espacios
+
+        when(repository.findById(usuarioId)).thenReturn(Optional.of(usuario));
+        when(repository.existsByEmail("test@email.com")).thenReturn(false);
+        when(repository.save(any(Usuario.class))).thenReturn(usuario);
+        when(mapper.toResponse(usuario)).thenReturn(responseDto);
+
+        // When
+        service.update(usuarioId, updateDto);
+
+        // Then - No debe encriptar password vacío
+        verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    // Otros tests CRUD y de búsqueda
     @Test
     void findAll_DebeRetornarListaDeUsuarios() {
         when(repository.findAll()).thenReturn(List.of(usuario));
@@ -164,7 +200,7 @@ class UsuarioServiceImplTest {
 
         assertThatThrownBy(() -> service.findById(99L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("no encontrada");
+                .hasMessageContaining("no encontrado");
     }
 
     @Test
