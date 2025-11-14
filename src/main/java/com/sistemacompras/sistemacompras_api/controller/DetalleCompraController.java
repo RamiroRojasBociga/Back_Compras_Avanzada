@@ -56,4 +56,3 @@ public class DetalleCompraController {
         service.delete(id);
     }
 }
-

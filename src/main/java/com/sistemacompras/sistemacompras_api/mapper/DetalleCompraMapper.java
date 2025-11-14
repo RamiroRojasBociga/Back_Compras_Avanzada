@@ -28,4 +28,3 @@ public interface DetalleCompraMapper {
     @Mapping(target = "producto", ignore = true)
     void updateEntityFromRequest(DetalleCompraRequestDto req, @MappingTarget DetalleCompra entity);
 }
-
