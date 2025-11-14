@@ -1,3 +1,4 @@
+// com.sistemacompras.sistemacompras_api.dto.DetalleCompraResponseDto
 package com.sistemacompras.sistemacompras_api.dto;
 
 public class DetalleCompraResponseDto {
@@ -10,6 +11,9 @@ public class DetalleCompraResponseDto {
     private String nombreProducto;
 
     private Integer cantidad;
+
+    // Precio unitario del producto o del detalle
+    private Double precioUnitario;
 
     // Getters y setters
 
@@ -59,5 +63,13 @@ public class DetalleCompraResponseDto {
 
     public void setCantidad(Integer cantidad) {
         this.cantidad = cantidad;
+    }
+
+    public Double getPrecioUnitario() {
+        return precioUnitario;
+    }
+
+    public void setPrecioUnitario(Double precioUnitario) {
+        this.precioUnitario = precioUnitario;
     }
 }
