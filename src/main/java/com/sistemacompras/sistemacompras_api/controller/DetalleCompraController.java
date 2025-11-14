@@ -1,3 +1,4 @@
+// com.sistemacompras.sistemacompras_api.controller.DetalleCompraController
 package com.sistemacompras.sistemacompras_api.controller;
 
 import com.sistemacompras.sistemacompras_api.dto.DetalleCompraRequestDto;
@@ -10,11 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// Opcional: si usas Springdoc OpenAPI
-// import io.swagger.v3.oas.annotations.Operation;
-// import io.swagger.v3.oas.annotations.tags.Tag;
-
-// @Tag(name = "DetalleCompras")
+// @RestController para exponer API REST
 @RestController
 @RequestMapping("/api/DetalleCompras")
 public class DetalleCompraController {
@@ -25,31 +22,39 @@ public class DetalleCompraController {
         this.service = service;
     }
 
-    // @Operation(summary = "Listar Detalles")
+    // Listar todos los detalles
     @GetMapping
     public List<DetalleCompraResponseDto> list() {
         return service.findAll();
     }
 
-    // @Operation(summary = "Obtener Detalle por ID")
+    // Obtener un detalle por ID
     @GetMapping("/{id}")
     public DetalleCompraResponseDto get(@PathVariable Long id) {
         return service.findById(id);
     }
 
-    // @Operation(summary = "Crear Detalle")
-    @PostMapping
-    public ResponseEntity<DetalleCompraResponseDto> create(@Valid @RequestBody DetalleCompraRequestDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
+    // ✅ NUEVO: listar todos los detalles de una compra específica
+    // GET /api/DetalleCompras/compra/{idCompra}
+    @GetMapping("/compra/{idCompra}")
+    public List<DetalleCompraResponseDto> listByCompra(@PathVariable Long idCompra) {
+        return service.findByCompra(idCompra);
     }
 
-    // @Operation(summary = "Actualizar Detalle")
+    // Crear un detalle
+    @PostMapping
+    public ResponseEntity<DetalleCompraResponseDto> create(@Valid @RequestBody DetalleCompraRequestDto dto) {
+        DetalleCompraResponseDto creado = service.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+    }
+
+    // Actualizar un detalle
     @PutMapping("/{id}")
     public DetalleCompraResponseDto update(@PathVariable Long id, @Valid @RequestBody DetalleCompraRequestDto dto) {
         return service.update(id, dto);
     }
 
-    // @Operation(summary = "Eliminar Detalle")
+    // Eliminar un detalle
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
